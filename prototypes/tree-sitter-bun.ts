@@ -41,6 +41,9 @@ function findWasm(filename: string): string | null {
   const candidates = [
     // 1. Sidecar next to binary (production distribution)
     join(execDir, filename),
+    // NOTE: process.cwd() candidates below are only safe in dev mode (bun run …).
+    // In a compiled binary, process.cwd() is the user's arbitrary working directory.
+    // src/parser/resolveWasmDir() must NOT include these candidates when running compiled.
     // 2. Dev: project root node_modules
     join(process.cwd(), "node_modules/web-tree-sitter", filename),
     join(process.cwd(), "node_modules/tree-sitter-typescript", filename),
@@ -81,8 +84,23 @@ async function main(): Promise<void> {
   } catch (err) {
     console.error("✗ Parser.init() failed:", err instanceof Error ? err.message : String(err));
     console.error("");
-    console.error("Fix: copy tree-sitter.wasm next to the binary:");
-    console.error("  cp node_modules/web-tree-sitter/tree-sitter.wasm ./dist/");
+    if (engineWasmPath) {
+      console.error("  tree-sitter.wasm was found at:", engineWasmPath);
+      console.error("  Fix: copy tree-sitter.wasm next to the binary:");
+      console.error("    cp node_modules/web-tree-sitter/tree-sitter.wasm ./dist/");
+    } else {
+      console.error("  tree-sitter.wasm was not found in any candidate path.");
+      console.error("  In dev mode, fix with: bun add web-tree-sitter");
+      console.error("  In compiled mode, copy tree-sitter.wasm next to the binary:");
+      console.error("    cp node_modules/web-tree-sitter/tree-sitter.wasm ./dist/");
+      const engineCandidates = [
+        join(dirname(process.execPath), "tree-sitter.wasm"),
+        join(process.cwd(), "node_modules/web-tree-sitter", "tree-sitter.wasm"),
+        join(import.meta.dir, "../node_modules/web-tree-sitter", "tree-sitter.wasm"),
+      ];
+      console.error("  Searched paths:");
+      for (const p of engineCandidates) console.error("   ", p);
+    }
     process.exit(1);
   }
 
