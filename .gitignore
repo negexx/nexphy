@@ -1,0 +1,27 @@
+# Claude workspace
+.claude/settings.local.json
+.claude/memory/
+
+# Dependencies
+node_modules/
+bun.lockb
+
+# Build output
+dist/
+tsgraph
+tsgraph-*
+*.exe
+
+# SQLite databases
+*.db
+*.db-wal
+*.db-shm
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db

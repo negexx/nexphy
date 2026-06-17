@@ -1,0 +1,28 @@
+{
+  "name": "tsgraph",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "tsgraph": "./dist/tsgraph"
+  },
+  "scripts": {
+    "dev": "bun run src/cli.ts",
+    "build": "bun build --compile src/cli.ts --outfile dist/tsgraph",
+    "build:node": "bun build src/cli.ts --outdir dist/node --target node",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "lint": "bunx @biomejs/biome check .",
+    "proto:infomap": "bun run prototypes/infomap-bun.ts",
+    "proto:tree-sitter": "bun run prototypes/tree-sitter-bun.ts",
+    "proto:all": "bun run scripts/validate-prototypes.ts"
+  },
+  "dependencies": {
+    "@mapequation/infomap": "^1.0.0",
+    "web-tree-sitter": "^0.25.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0",
+    "@types/bun": "latest",
+    "typescript": "^5.8.0"
+  }
+}
