@@ -15,6 +15,14 @@ import { tmpdir } from "node:os";
 
 const isWindows = process.platform === "win32";
 
+const PROTOTYPE_FILES = ["prototypes/infomap-bun.ts", "prototypes/tree-sitter-bun.ts"];
+for (const f of PROTOTYPE_FILES) {
+  if (!existsSync(f)) {
+    console.error(`✗ Missing prototype file: ${f}`);
+    process.exit(1);
+  }
+}
+
 interface Result {
   name: string;
   devPass: boolean;
@@ -102,15 +110,18 @@ for (const r of results) {
 }
 console.log("╚══════════════════════════════════════════════╝");
 
-// tree-sitter compiled FAIL without sidecar WASM is expected — do not block
-const allPass = results.every((r) => r.devPass && (r.compiledPass || r.compiledSkipped));
+const allPass = results.every((r) => r.devPass && r.compiledPass);
 
 if (allPass) {
-  console.log("\n✓ All prototype dev-mode runs passed.");
+  console.log("\n✓ All prototype dev-mode and compiled-mode runs passed.");
   process.exit(0);
 } else {
-  console.log("\n✗ One or more prototype dev-mode runs FAILED.");
-  console.log("  tree-sitter compiled FAIL without sidecar WASM is expected.");
-  console.log("  See prototypes/RESULTS.md for findings and Phase 2 fallback plans.\n");
+  console.log("\n✗ Some prototype modes failed. See table above.");
+  console.log(
+    "  tree-sitter compiled FAIL without sidecar WASM is expected — see prototypes/RESULTS.md §B.",
+  );
+  console.log(
+    "  infomap dev FAIL is expected — browser-only npm package, use native CLI subprocess in Phase 2.\n",
+  );
   process.exit(1);
 }
