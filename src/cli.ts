@@ -32,18 +32,17 @@ Options:
 
 const [command] = positionals;
 switch (command) {
-  // biome-ignore lint/suspicious/noFallthroughSwitchClause: process.exit prevents fallthrough
   case "build":
-    console.error("'build' not yet implemented (Phase 2)");
-    process.exit(1);
-  // biome-ignore lint/suspicious/noFallthroughSwitchClause: process.exit prevents fallthrough
+    await import("./cli/build.ts").then((m) => m.run(positionals.slice(1)));
+    break;
   case "query":
     console.error("'query' not yet implemented (Phase 3)");
     process.exit(1);
-  // biome-ignore lint/suspicious/noFallthroughSwitchClause: process.exit prevents fallthrough
+    break;
   case "explain-edges":
     console.error("'explain-edges' not yet implemented (Phase 3)");
     process.exit(1);
+    break;
   default:
     console.error(`Unknown command: ${command}`);
     process.exit(1);
