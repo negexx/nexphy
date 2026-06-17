@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { unlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { createBunSqliteDb } from "../../src/storage/bun-sqlite.ts";
 
-const TEST_DB_DIR = "/tmp";
+const TEST_DB_DIR = tmpdir();
 const usedPaths: string[] = [];
 
 function makeTempPath(): string {
