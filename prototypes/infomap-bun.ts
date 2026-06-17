@@ -29,9 +29,7 @@ const SMALL_NETWORK = `#source target [weight]
 async function main(): Promise<void> {
   console.log("=== Prototype A: @mapequation/infomap ===");
   console.log(`Package version: ${Infomap.__version__ ?? "unknown"}`);
-  console.log(
-    "Note: this package uses URL.createObjectURL + new Worker (browser Web Worker API)"
-  );
+  console.log("Note: this package uses URL.createObjectURL + new Worker (browser Web Worker API)");
   console.log("");
 
   // Step 1: Can we even instantiate?
@@ -40,10 +38,7 @@ async function main(): Promise<void> {
     infomap = new Infomap();
     console.log("✓ new Infomap() succeeded");
   } catch (err) {
-    console.error(
-      "✗ new Infomap() threw:",
-      err instanceof Error ? err.message : String(err)
-    );
+    console.error("✗ new Infomap() threw:", err instanceof Error ? err.message : String(err));
     console.error("FAIL");
     process.exit(1);
   }
@@ -52,13 +47,9 @@ async function main(): Promise<void> {
   try {
     console.log("Attempting runAsync() …");
     const result = await Promise.race([
-      infomap.runAsync(SMALL_NETWORK, "--seed 42 --num-trials 1 --silent"),
+      infomap.runAsync({ network: SMALL_NETWORK, args: "--seed 42 --num-trials 1 --silent" }),
       new Promise<never>((_, reject) =>
-        setTimeout(
-          () =>
-            reject(new Error("timeout: runAsync did not resolve within 15s")),
-          15_000
-        )
+        setTimeout(() => reject(new Error("timeout: runAsync did not resolve within 15s")), 15_000),
       ),
     ]);
 
@@ -80,11 +71,9 @@ async function main(): Promise<void> {
       msg.includes("is not a constructor")
     ) {
       console.error(
-        "  → Expected failure: package requires browser Web Worker API (URL.createObjectURL / Worker)"
+        "  → Expected failure: package requires browser Web Worker API (URL.createObjectURL / Worker)",
       );
-      console.error(
-        "  → Fallback plan: use native infomap CLI subprocess instead"
-      );
+      console.error("  → Fallback plan: use native infomap CLI subprocess instead");
     } else {
       console.error("  → Unexpected error — investigate further");
     }
