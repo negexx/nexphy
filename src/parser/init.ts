@@ -7,7 +7,7 @@ let tsLanguage: Language | null = null;
 export async function getParser(): Promise<{ parser: Parser; language: Language }> {
   if (parser && tsLanguage) return { parser, language: tsLanguage };
 
-  await Parser.init({ wasmBinary: readWasm("tree-sitter.wasm") });
+  await Parser.init({ wasmBinary: readWasm("web-tree-sitter.wasm") });
   tsLanguage = await Language.load(readWasm("tree-sitter-typescript.wasm"));
   parser = new Parser();
   parser.setLanguage(tsLanguage);

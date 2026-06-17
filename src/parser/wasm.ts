@@ -1,8 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-const isCompiled = !process.execPath.endsWith("bun") &&
-  !process.execPath.endsWith("bun.exe");
+const isCompiled = !process.execPath.endsWith("bun") && !process.execPath.endsWith("bun.exe");
 
 function candidates(filename: string): string[] {
   const execDir = dirname(process.execPath);
