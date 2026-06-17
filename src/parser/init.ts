@@ -1,16 +1,18 @@
 import { Language, Parser } from "web-tree-sitter";
 import { readWasm } from "./wasm.ts";
 
-let parser: Parser | null = null;
-let tsLanguage: Language | null = null;
+let initPromise: Promise<{ parser: Parser; language: Language }> | null = null;
 
-export async function getParser(): Promise<{ parser: Parser; language: Language }> {
-  if (parser && tsLanguage) return { parser, language: tsLanguage };
+export function getParser(): Promise<{ parser: Parser; language: Language }> {
+  if (initPromise) return initPromise;
 
-  await Parser.init({ wasmBinary: readWasm("web-tree-sitter.wasm") });
-  tsLanguage = await Language.load(readWasm("tree-sitter-typescript.wasm"));
-  parser = new Parser();
-  parser.setLanguage(tsLanguage);
+  initPromise = (async () => {
+    await Parser.init({ wasmBinary: readWasm("web-tree-sitter.wasm") });
+    const tsLanguage = await Language.load(readWasm("tree-sitter-typescript.wasm"));
+    const parser = new Parser();
+    parser.setLanguage(tsLanguage);
+    return { parser, language: tsLanguage };
+  })();
 
-  return { parser, language: tsLanguage };
+  return initPromise;
 }
