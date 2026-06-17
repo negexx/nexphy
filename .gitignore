@@ -17,6 +17,11 @@ tsgraph-*
 *.db-wal
 *.db-shm
 
+# test artifacts
+fixtures/**/.tsgraph.db
+fixtures/**/.tsgraph.db-wal
+fixtures/**/.tsgraph.db-shm
+
 # Environment
 .env
 .env.*
