@@ -96,3 +96,25 @@ export function updatePagerank(db: SqliteDb, nodeId: bigint, rank: number): void
 export function updateCommunity(db: SqliteDb, nodeId: bigint, community: number): void {
   db.run("UPDATE nodes SET community=? WHERE id=?", community, Number(nodeId));
 }
+
+export interface StoredFileRecord {
+  id: bigint;
+  contentHash: string;
+  shapeHash: string;
+}
+
+export function getFileRecord(db: SqliteDb, posixPath: string): StoredFileRecord | null {
+  const row = db.get<{ id: number; content_hash: string; shape_hash: string }>(
+    "SELECT id, content_hash, shape_hash FROM files WHERE path = ?",
+    posixPath,
+  );
+  if (!row) return null;
+  return { id: BigInt(row.id), contentHash: row.content_hash, shapeHash: row.shape_hash };
+}
+
+export function isDirty(
+  stored: StoredFileRecord,
+  parsed: { contentHash: string; shapeHash: string },
+): boolean {
+  return stored.contentHash !== parsed.contentHash || stored.shapeHash !== parsed.shapeHash;
+}
