@@ -1,5 +1,5 @@
-import { cpSync, mkdirSync } from "node:fs";
 import { execSync } from "node:child_process";
+import { cpSync, mkdirSync } from "node:fs";
 
 mkdirSync("dist/node", { recursive: true });
 
@@ -12,7 +12,7 @@ for (const wasm of [
   "web-tree-sitter/web-tree-sitter.wasm",
   "tree-sitter-typescript/tree-sitter-typescript.wasm",
 ]) {
-  const filename = wasm.split("/").at(-1)!;
+  const filename = wasm.split("/").pop() ?? wasm;
   cpSync(`node_modules/${wasm}`, `dist/node/${filename}`);
   console.log(`Copied dist/node/${filename}`);
 }

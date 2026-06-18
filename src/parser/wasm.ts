@@ -8,9 +8,7 @@ import { fileURLToPath } from "node:url";
 //   Bun compiled:     Bun runtime + execPath does NOT end with "bun"/"bun.exe" → use dirname(process.execPath)
 const isBunRuntime = typeof Bun !== "undefined";
 const isCompiled =
-  isBunRuntime &&
-  !process.execPath.endsWith("bun") &&
-  !process.execPath.endsWith("bun.exe");
+  isBunRuntime && !process.execPath.endsWith("bun") && !process.execPath.endsWith("bun.exe");
 
 function getModuleDir(): string {
   if (isCompiled) {
