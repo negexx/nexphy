@@ -99,3 +99,18 @@ jobs:
 
       - name: Smoke test — CLI responds under Node.js
         run: node dist/node/cli.js --help 2>&1 | grep -q "Usage\|tsgraph\|nexphy\|Commands\|build\|query"
+
+      - name: Test (Node.js)
+        run: npm run test:node
+
+      - name: Install fixture dependencies
+        run: |
+          mkdir -p fixtures/simple-ts/node_modules
+          cp -r node_modules/typescript fixtures/simple-ts/node_modules/typescript
+
+      - name: E2E — build fixture under Node.js
+        run: node dist/node/cli.js build ./fixtures/simple-ts
+
+      - name: Cleanup fixture DB
+        if: always()
+        run: rm -f fixtures/simple-ts/.tsgraph.db fixtures/simple-ts/.tsgraph.db-wal fixtures/simple-ts/.tsgraph.db-shm
