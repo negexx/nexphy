@@ -16,8 +16,8 @@
  */
 
 import { execSync } from "node:child_process";
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { parseArgs } from "node:util";
 
 const CHARS_PER_TOKEN = 4;
@@ -121,7 +121,9 @@ const tsFiles = collectTsFiles(projectDir, ["tests", ".test.", ".spec."]);
 const naiveTotal = naiveTokens(tsFiles);
 const naiveFileCount = tsFiles.length;
 
-console.log(`▸ Naive baseline: ${naiveFileCount} source files = ${naiveTotal.toLocaleString()} tokens\n`);
+console.log(
+  `▸ Naive baseline: ${naiveFileCount} source files = ${naiveTotal.toLocaleString()} tokens\n`,
+);
 
 // 3. Per-symbol query
 console.log(
@@ -140,7 +142,7 @@ for (const seed of SEEDS) {
   const queryMs = Date.now() - t0;
 
   if (nTokens < 0) {
-    console.log(`${"  " + seed.padEnd(22)} ${"(not found)".padStart(8)}`);
+    console.log(`${`  ${seed.padEnd(22)}`} ${"(not found)".padStart(8)}`);
     continue;
   }
 
@@ -155,7 +157,7 @@ for (const seed of SEEDS) {
 
   console.log(
     `  ${seed.padEnd(22)} ${nTokens.toLocaleString().padStart(7)} ${naiveTotal.toLocaleString().padStart(8)} ` +
-      `${(reductionX + "x").padStart(8)}  ${bar(reduction)} ${pct}% saved  ${queryMs}ms`,
+      `${(`${reductionX}x`).padStart(8)}  ${bar(reduction)} ${pct}% saved  ${queryMs}ms`,
   );
 }
 
@@ -172,8 +174,10 @@ const avgMs = Math.round(rows.reduce((a, r) => a + r.ms, 0) / rows.length);
 
 console.log("─".repeat(80));
 console.log(
-  `  ${"AVERAGE".padEnd(22)} ${Math.round(totalNexphyTokens / successCount).toLocaleString().padStart(7)} ` +
-    `${naiveTotal.toLocaleString().padStart(8)} ${(avgX + "x").padStart(8)}  ${bar(avgReduction)} ${avgPct}% saved`,
+  `  ${"AVERAGE".padEnd(22)} ${Math.round(totalNexphyTokens / successCount)
+    .toLocaleString()
+    .padStart(7)} ` +
+    `${naiveTotal.toLocaleString().padStart(8)} ${(`${avgX}x`).padStart(8)}  ${bar(avgReduction)} ${avgPct}% saved`,
 );
 
 console.log(`
@@ -181,10 +185,10 @@ console.log(`
 │  Summary                                                 │
 │                                                          │
 │  Source files indexed : ${String(naiveFileCount).padEnd(33)}│
-│  Naive context (all files) : ${String(naiveTotal.toLocaleString() + " tokens").padEnd(28)}│
-│  Avg nexphy context / query : ${String(Math.round(totalNexphyTokens / successCount).toLocaleString() + " tokens").padEnd(28)}│
-│  Average reduction  : ${(avgX + "x  (" + avgPct + "% fewer tokens)").padEnd(36)}│
-│  Avg query latency  : ${String(avgMs + "ms").padEnd(36)}│
-│  Graph build time   : ${String(buildMs + "ms").padEnd(36)}│
+│  Naive context (all files) : ${String(`${naiveTotal.toLocaleString()} tokens`).padEnd(28)}│
+│  Avg nexphy context / query : ${String(`${Math.round(totalNexphyTokens / successCount).toLocaleString()} tokens`).padEnd(28)}│
+│  Average reduction  : ${(`${avgX}x  (${avgPct}% fewer tokens)`).padEnd(36)}│
+│  Avg query latency  : ${String(`${avgMs}ms`).padEnd(36)}│
+│  Graph build time   : ${String(`${buildMs}ms`).padEnd(36)}│
 └──────────────────────────────────────────────────────────┘
 `);
