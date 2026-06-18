@@ -113,58 +113,64 @@ export async function extractFile(
   const { parser } = await getParser();
   const tree = parser.parse(source);
   if (!tree) throw new Error(`Failed to parse file: ${absPath}`);
-  const root = tree.rootNode;
 
-  const relPath = stripProjectRoot(absPath, projectRoot);
-  const symbols: ParsedSymbol[] = [];
-  const usedNames = new Map<string, number>();
+  try {
+    const root = tree.rootNode;
 
-  for (const child of root.children) {
-    if (!child) continue;
-    let decl = child;
-    let isEntry = false;
+    const relPath = stripProjectRoot(absPath, projectRoot);
+    const symbols: ParsedSymbol[] = [];
+    const usedNames = new Map<string, number>();
 
-    if (child.type === "export_statement") {
-      isEntry = true;
-      // Find the actual declaration inside the export_statement
-      const inner = child.children.find((c) => c !== null && kindOf(c.type) !== null);
-      if (!inner) continue;
-      decl = inner;
+    for (const child of root.children) {
+      if (!child) continue;
+      let decl = child;
+      let isEntry = false;
+
+      if (child.type === "export_statement") {
+        isEntry = true;
+        const inner = child.children.find((c) => c !== null && kindOf(c.type) !== null);
+        if (!inner) continue;
+        decl = inner;
+      }
+
+      const kind = kindOf(decl.type);
+      if (!kind) continue;
+      const name = getName(decl);
+      if (!name) continue;
+
+      const count = usedNames.get(name) ?? 0;
+      usedNames.set(name, count + 1);
+      const symbolId =
+        count === 0 ? `${relPath}#${name}` : `${relPath}#${name}_${decl.startPosition.row + 1}`;
+
+      const sigLine = decl.text.split("\n")[0];
+      symbols.push({
+        symbolId,
+        name,
+        kind,
+        filePath: posix(absPath),
+        lineStart: decl.startPosition.row + 1,
+        lineEnd: decl.endPosition.row + 1,
+        // Spread to code points so multi-byte chars (emoji, CJK) aren't split mid-surrogate
+        signature: [...sigLine].slice(0, 200).join(""),
+        isEntry,
+      });
     }
 
-    const kind = kindOf(decl.type);
-    if (!kind) continue;
-    const name = getName(decl);
-    if (!name) continue;
+    const imports = extractImports(root, absPath);
 
-    const count = usedNames.get(name) ?? 0;
-    usedNames.set(name, count + 1);
-    const symbolId =
-      count === 0 ? `${relPath}#${name}` : `${relPath}#${name}_${decl.startPosition.row + 1}`;
+    const contentHash = createHash("sha1").update(source).digest("hex");
+    const shapeHash = createHash("sha1")
+      .update(
+        symbols
+          .map((s) => s.symbolId)
+          .sort()
+          .join("\n"),
+      )
+      .digest("hex");
 
-    symbols.push({
-      symbolId,
-      name,
-      kind,
-      filePath: posix(absPath),
-      lineStart: decl.startPosition.row + 1,
-      lineEnd: decl.endPosition.row + 1,
-      signature: decl.text.split("\n")[0].slice(0, 200),
-      isEntry,
-    });
+    return { path: posix(absPath), contentHash, shapeHash, symbols, imports };
+  } finally {
+    tree.delete();
   }
-
-  const imports = extractImports(root, absPath);
-
-  const contentHash = createHash("sha1").update(source).digest("hex");
-  const shapeHash = createHash("sha1")
-    .update(
-      symbols
-        .map((s) => s.symbolId)
-        .sort()
-        .join("\n"),
-    )
-    .digest("hex");
-
-  return { path: posix(absPath), contentHash, shapeHash, symbols, imports };
 }

@@ -156,7 +156,12 @@ export function bfsSubgraph(
       }
     }
 
-    const sorted = [...candidates.values()].sort((a, b) => b.node.pagerank - a.node.pagerank);
+    const sorted = [...candidates.values()].sort((a, b) => {
+      const rankDiff = b.node.pagerank - a.node.pagerank;
+      if (rankDiff !== 0) return rankDiff;
+      // Tie-break by node ID ascending for determinism (CLAUDE.md convention).
+      return a.node.id < b.node.id ? -1 : a.node.id > b.node.id ? 1 : 0;
+    });
     const nextFrontier: bigint[] = [];
 
     for (const { node, edges } of sorted) {

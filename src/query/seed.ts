@@ -52,7 +52,7 @@ export function resolveSeed(db: SqliteDb, seed: string): NodeRow {
 
   // Bare name: substring match, top-1 by pagerank
   const row = db.get<RawNodeRow>(
-    `${NODE_SELECT} WHERE n.name LIKE ? ESCAPE '\\' ORDER BY n.pagerank DESC LIMIT 1`,
+    `${NODE_SELECT} WHERE n.name LIKE ? ESCAPE '\\' ORDER BY n.pagerank DESC, n.id ASC LIMIT 1`,
     `%${seed.replace(/%/g, "\\%").replace(/_/g, "\\_")}%`,
   );
   if (!row) throw new Error(`No symbol found matching "${seed}"`);

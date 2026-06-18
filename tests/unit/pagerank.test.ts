@@ -36,4 +36,22 @@ describe("computePagerank", () => {
     expect(ranks.get(1n)).toBeGreaterThan(0);
     expect(ranks.get(2n)).toBeGreaterThan(0);
   });
+
+  test("self-loops do not inflate rank", () => {
+    // Node 1 self-loops; node 2 has no edges — both should be equal (no in-edges from others)
+    const withSelf = computePagerank([1n, 2n], [{ src: 1n, dst: 1n }]);
+    const withoutSelf = computePagerank([1n, 2n], []);
+    expect(withSelf.get(1n) ?? 0).toBeCloseTo(withoutSelf.get(1n) ?? 0, 6);
+  });
+
+  test("rank sum is conserved (≈ 1) with dangling-node correction", () => {
+    // Node 3 is a dangling sink — no out-edges. Without correction its mass leaks.
+    const edges = [
+      { src: 1n, dst: 3n },
+      { src: 2n, dst: 3n },
+    ];
+    const ranks = computePagerank([1n, 2n, 3n], edges);
+    const total = [...ranks.values()].reduce((a, b) => a + b, 0);
+    expect(total).toBeCloseTo(1, 5);
+  });
 });
