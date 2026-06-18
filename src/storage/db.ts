@@ -29,8 +29,8 @@ export function openDb(path: string): SqliteDb {
   db.run("PRAGMA journal_mode=WAL");
   db.run("PRAGMA busy_timeout=5000");
 
-  const versionRow = db.get<{ user_version: number }>("PRAGMA user_version");
-  const currentVersion = versionRow?.user_version ?? 0;
+  const versionRow = db.get<{ user_version: number | bigint }>("PRAGMA user_version");
+  const currentVersion = Number(versionRow?.user_version ?? 0);
 
   if (currentVersion === 0) {
     applySchema(db);
