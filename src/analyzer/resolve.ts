@@ -1,6 +1,5 @@
 // src/analyzer/resolve.ts
-import { createRequire } from "node:module";
-import { join } from "node:path";
+import * as ts from "typescript";
 import type { ParsedFile } from "../parser/types.ts";
 import type { ResolvedEdge } from "./types.ts";
 
@@ -12,9 +11,6 @@ export async function resolveEdges(
   files: ParsedFile[],
   projectRoot: string,
 ): Promise<ResolvedEdge[]> {
-  const req = createRequire(join(projectRoot, "package.json"));
-  const ts = req("typescript") as typeof import("typescript");
-
   const tsconfig = ts.findConfigFile(projectRoot, ts.sys.fileExists, "tsconfig.json");
   const configFile = tsconfig ? ts.readConfigFile(tsconfig, ts.sys.readFile) : { config: {} };
   const parsedConfig = ts.parseJsonConfigFileContent(
