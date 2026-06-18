@@ -43,8 +43,8 @@ export function toNodeRow(r: RawNodeRow): NodeRow {
 }
 
 export function resolveSeed(db: SqliteDb, seed: string): NodeRow {
-  // Qualified form: contains "::"
-  if (seed.includes("::")) {
+  // Qualified form: contains "#" (symbol_id format: "path/to/file.ts#SymbolName")
+  if (seed.includes("#")) {
     const row = db.get<RawNodeRow>(`${NODE_SELECT} WHERE n.symbol_id = ?`, seed);
     if (!row) throw new Error(`No symbol found matching "${seed}"`);
     return toNodeRow(row);

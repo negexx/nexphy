@@ -40,7 +40,7 @@ beforeAll(() => {
   db.run(
     `INSERT INTO nodes (symbol_id, name, kind, file_id, line_start, line_end, pagerank, community, is_entry)
      VALUES (?,?,?,?,?,?,?,?,?)`,
-    "src/index.ts::greet",
+    "src/index.ts#greet",
     "greet",
     "function",
     fileId,
@@ -53,7 +53,7 @@ beforeAll(() => {
   db.run(
     `INSERT INTO nodes (symbol_id, name, kind, file_id, line_start, line_end, pagerank, community, is_entry)
      VALUES (?,?,?,?,?,?,?,?,?)`,
-    "src/index.ts::VERSION",
+    "src/index.ts#VERSION",
     "VERSION",
     "variable",
     fileId,
@@ -72,14 +72,14 @@ afterAll(() => {
 
 describe("resolveSeed", () => {
   test("resolves by exact symbol_id", () => {
-    const node = resolveSeed(db, "src/index.ts::greet");
-    expect(node.symbolId).toBe("src/index.ts::greet");
+    const node = resolveSeed(db, "src/index.ts#greet");
+    expect(node.symbolId).toBe("src/index.ts#greet");
     expect(node.name).toBe("greet");
   });
 
   test("resolves by bare name — top-1 by pagerank", () => {
     const node = resolveSeed(db, "greet");
-    expect(node.symbolId).toBe("src/index.ts::greet");
+    expect(node.symbolId).toBe("src/index.ts#greet");
   });
 
   test("resolves bare name substring match", () => {
@@ -92,7 +92,7 @@ describe("resolveSeed", () => {
   });
 
   test("node row has correct shape", () => {
-    const node = resolveSeed(db, "src/index.ts::greet");
+    const node = resolveSeed(db, "src/index.ts#greet");
     expect(node.id).toBeGreaterThan(0n);
     expect(node.filePath).toBe("src/index.ts");
     expect(node.lineStart).toBe(5);

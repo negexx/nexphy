@@ -42,7 +42,7 @@ export async function run(args: string[]): Promise<void> {
   if (!seed) {
     console.error(
       "Usage: tsgraph query <seed> [--depth N] [--budget N] [--db path]\n" +
-        "  <seed>  Symbol name (e.g. greet) or qualified ID (e.g. src/index.ts::greet)",
+        "  <seed>  Symbol name (e.g. greet) or qualified ID (e.g. src/index.ts#greet)",
     );
     process.exit(1);
   }
