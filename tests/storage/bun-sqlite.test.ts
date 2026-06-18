@@ -7,7 +7,7 @@ const TEST_DB_DIR = tmpdir();
 const usedPaths: string[] = [];
 
 function makeTempPath(): string {
-  const path = `${TEST_DB_DIR}/tsgraph-test-bun-sqlite-${Date.now()}-${Math.random().toString(36).slice(2)}.db`;
+  const path = `${TEST_DB_DIR}/nexphy-test-bun-sqlite-${Date.now()}-${Math.random().toString(36).slice(2)}.db`;
   usedPaths.push(path);
   return path;
 }

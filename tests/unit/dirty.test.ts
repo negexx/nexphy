@@ -6,7 +6,7 @@ import { openDb } from "../../src/storage/db.ts";
 import { getFileRecord, isDirty, upsertFile } from "../../src/storage/writer.ts";
 
 function makeTempDb() {
-  const path = join(tmpdir(), `tsgraph-dirty-${Date.now()}.db`);
+  const path = join(tmpdir(), `nexphy-dirty-${Date.now()}.db`);
   return { path, db: openDb(path) };
 }
 function cleanup(path: string) {

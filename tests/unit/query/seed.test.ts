@@ -7,7 +7,7 @@ import { openDb } from "../../../src/storage/db.ts";
 import type { SqliteDb } from "../../../src/storage/interface.ts";
 
 function makeTempDb(): string {
-  return join(tmpdir(), `tsgraph-seed-test-${Date.now()}.db`);
+  return join(tmpdir(), `nexphy-seed-test-${Date.now()}.db`);
 }
 
 function cleanup(path: string) {

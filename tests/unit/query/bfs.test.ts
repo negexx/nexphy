@@ -7,7 +7,7 @@ import { openDb } from "../../../src/storage/db.ts";
 import type { SqliteDb } from "../../../src/storage/interface.ts";
 
 function makeTempDb(): string {
-  return join(tmpdir(), `tsgraph-bfs-test-${Date.now()}.db`);
+  return join(tmpdir(), `nexphy-bfs-test-${Date.now()}.db`);
 }
 function cleanup(path: string) {
   for (const suffix of ["", "-wal", "-shm"]) {

@@ -12,7 +12,7 @@ import {
 } from "../../src/storage/writer.ts";
 
 function makeTempDb() {
-  const path = join(tmpdir(), `tsgraph-writer-${Date.now()}.db`);
+  const path = join(tmpdir(), `nexphy-writer-${Date.now()}.db`);
   return { path, db: openDb(path) };
 }
 function cleanup(path: string) {

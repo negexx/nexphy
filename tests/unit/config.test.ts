@@ -5,13 +5,13 @@ import { join } from "node:path";
 import { loadConfig } from "../../src/config/loader.ts";
 
 function makeTempDir(): string {
-  const dir = join(tmpdir(), `tsgraph-cfg-${Date.now()}`);
+  const dir = join(tmpdir(), `nexphy-cfg-${Date.now()}`);
   mkdirSync(dir, { recursive: true });
   return dir;
 }
 
 describe("loadConfig", () => {
-  test("returns defaults when no tsgraph.toml exists", () => {
+  test("returns defaults when no nexphy.toml exists", () => {
     const dir = makeTempDir();
     const cfg = loadConfig(dir);
     expect(cfg.chunkSize).toBe(200);
@@ -23,7 +23,7 @@ describe("loadConfig", () => {
   test("merges toml values over defaults", () => {
     const dir = makeTempDir();
     writeFileSync(
-      join(dir, "tsgraph.toml"),
+      join(dir, "nexphy.toml"),
       `
 [build]
 chunk_size = 50
@@ -38,7 +38,7 @@ chunk_size = 50
   test("custom include patterns replace defaults", () => {
     const dir = makeTempDir();
     writeFileSync(
-      join(dir, "tsgraph.toml"),
+      join(dir, "nexphy.toml"),
       `
 [include]
 patterns = ["src/**/*.ts"]

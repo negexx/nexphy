@@ -51,7 +51,7 @@ export async function detectCommunities(
     return { communities: new Map(), method: "fallback" };
   }
 
-  const workDir = join(tmpdir(), `tsgraph-infomap-${Date.now()}`);
+  const workDir = join(tmpdir(), `nexphy-infomap-${Date.now()}`);
   mkdirSync(workDir, { recursive: true });
   const netFile = join(workDir, "graph.net");
   // infomap names its output after the input file's stem: graph.net → graph.clu

@@ -40,14 +40,14 @@ export function resolveEdges(filePaths: string[], projectRoot: string): Resolved
       (configFile as { error: ts.Diagnostic }).error.messageText,
       "\n",
     );
-    console.warn(`tsgraph: tsconfig read error: ${msg}`);
+    console.warn(`nexphy: tsconfig read error: ${msg}`);
   }
   const parsedConfig = ts.parseJsonConfigFileContent(configFile.config, ts.sys, projectRoot, {
     noEmit: true,
     plugins: [],
   });
   for (const e of parsedConfig.errors) {
-    console.warn(`tsgraph: tsconfig: ${ts.flattenDiagnosticMessageText(e.messageText, "\n")}`);
+    console.warn(`nexphy: tsconfig: ${ts.flattenDiagnosticMessageText(e.messageText, "\n")}`);
   }
 
   const program = ts.createProgram({

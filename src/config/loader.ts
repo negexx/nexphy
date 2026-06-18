@@ -1,11 +1,11 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "smol-toml";
-import type { TsgraphConfig } from "./types.ts";
+import type { NexphyConfig } from "./types.ts";
 import { CONFIG_DEFAULTS } from "./types.ts";
 
-export function loadConfig(projectDir: string): TsgraphConfig {
-  const tomlPath = join(projectDir, "tsgraph.toml");
+export function loadConfig(projectDir: string): NexphyConfig {
+  const tomlPath = join(projectDir, "nexphy.toml");
   if (!existsSync(tomlPath)) return { ...CONFIG_DEFAULTS };
 
   const raw = parse(readFileSync(tomlPath, "utf8")) as Record<string, unknown>;
