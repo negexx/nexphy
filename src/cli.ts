@@ -1,12 +1,16 @@
 import { parseArgs } from "node:util";
 
-const { values, positionals } = parseArgs({
-  args: process.argv.slice(2),
+const rawArgs = process.argv.slice(2);
+
+// Top-level: only parse -v/--version and -h/--help; everything else passes through.
+const { values } = parseArgs({
+  args: rawArgs,
   options: {
     version: { type: "boolean", short: "v" },
     help: { type: "boolean", short: "h" },
   },
   allowPositionals: true,
+  strict: false,
 });
 
 if (values.version) {
@@ -14,7 +18,10 @@ if (values.version) {
   process.exit(0);
 }
 
-if (values.help || positionals.length === 0) {
+// Find the first non-flag argument as the command.
+const firstPositional = rawArgs.find((a) => !a.startsWith("-"));
+
+if (values.help || !firstPositional) {
   console.log(`
 tsgraph — TypeScript Code Graph CLI
 
@@ -30,18 +37,19 @@ Options:
   process.exit(0);
 }
 
-const [command] = positionals;
+const command = firstPositional;
+// Subcommand args: everything after the command token (preserves all flags).
+const subArgs = rawArgs.slice(rawArgs.indexOf(command) + 1);
+
 switch (command) {
   case "build":
-    await import("./cli/build.ts").then((m) => m.run(positionals.slice(1)));
+    await import("./cli/build.ts").then((m) => m.run(subArgs));
     break;
   case "query":
-    console.error("'query' not yet implemented (Phase 3)");
-    process.exit(1);
+    await import("./cli/query.ts").then((m) => m.run(subArgs));
     break;
   case "explain-edges":
-    console.error("'explain-edges' not yet implemented (Phase 3)");
-    process.exit(1);
+    await import("./cli/explain-edges.ts").then((m) => m.run(subArgs));
     break;
   default:
     console.error(`Unknown command: ${command}`);
