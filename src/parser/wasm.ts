@@ -1,20 +1,31 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
+// In Bun dev mode, process.execPath ends with "bun" or "bun.exe".
+// In a compiled Bun binary or Node.js, it does not.
 const isCompiled = !process.execPath.endsWith("bun") && !process.execPath.endsWith("bun.exe");
 
-function candidates(filename: string): string[] {
-  const execDir = dirname(process.execPath);
+function getModuleDir(): string {
   if (isCompiled) {
-    // Compiled binary: WASM must be a sidecar next to the executable.
-    // process.cwd() is the user's arbitrary directory — not safe to use.
-    return [join(execDir, filename)];
+    // Compiled binary: WASM sidecars must be placed next to the executable.
+    return dirname(process.execPath);
+  }
+  // Dev mode (Bun or Node): resolve from this file's location.
+  return dirname(fileURLToPath(import.meta.url));
+}
+
+function candidates(filename: string): string[] {
+  const moduleDir = getModuleDir();
+  if (isCompiled) {
+    return [join(moduleDir, filename)];
   }
   return [
+    join(moduleDir, filename),
+    join(moduleDir, "../../node_modules/web-tree-sitter", filename),
+    join(moduleDir, "../../node_modules/tree-sitter-typescript", filename),
     join(process.cwd(), "node_modules/web-tree-sitter", filename),
     join(process.cwd(), "node_modules/tree-sitter-typescript", filename),
-    join(import.meta.dir, "../node_modules/web-tree-sitter", filename),
-    join(import.meta.dir, "../node_modules/tree-sitter-typescript", filename),
   ];
 }
 
