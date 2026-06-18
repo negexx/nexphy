@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { parseArgs } from "node:util";
-import { openDb } from "../storage/db.ts";
+import { serializeQuery } from "../output/serialize.ts";
 import { bfsSubgraph } from "../query/bfs.ts";
 import { resolveSeed } from "../query/seed.ts";
-import { serializeQuery } from "../output/serialize.ts";
+import { openDb } from "../storage/db.ts";
 
 function findDb(override?: string): string {
   if (override) {
