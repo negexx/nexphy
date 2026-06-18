@@ -1,10 +1,8 @@
-// src/cli/build.ts
 import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { resolveEdges } from "../analyzer/resolve.ts";
 import { detectCommunities } from "../community/infomap.ts";
 import { loadConfig } from "../config/loader.ts";
-import { buildGraph } from "../graph/builder.ts";
 import { computePagerank } from "../pagerank/compute.ts";
 import { extractFile } from "../parser/extract.ts";
 import { openDb } from "../storage/db.ts";
@@ -75,10 +73,10 @@ export async function run(args: string[]): Promise<void> {
   console.log(`tsgraph build: ${allFiles.length} files in ${projectDir}`);
   console.log(`Chunk size: ${cfg.chunkSize}`);
 
-  const allParsed: Awaited<ReturnType<typeof extractFile>>[] = [];
   const fileIds = new Map<string, bigint>();
+  let parsedCount = 0;
 
-  // Phase 1: chunked parse + write files
+  // Phase 1: chunked parse → write file records + nodes; ASTs discarded after each chunk
   for (const fileChunk of chunk(allFiles, cfg.chunkSize)) {
     const parsed = await Promise.all(
       fileChunk.map(async (absPath) => {
@@ -101,48 +99,54 @@ export async function run(args: string[]): Promise<void> {
           analyzedAt: Date.now(),
         });
         fileIds.set(file.path, fileId);
+        for (const sym of file.symbols) {
+          upsertNode(db, {
+            symbolId: sym.symbolId,
+            name: sym.name,
+            kind: sym.kind,
+            fileId,
+            lineStart: sym.lineStart,
+            lineEnd: sym.lineEnd,
+            signature: sym.signature,
+            isEntry: sym.isEntry,
+          });
+        }
       }
     });
 
-    allParsed.push(...parsed);
-    process.stdout.write(`  Parsed ${allParsed.length}/${allFiles.length}\r`);
+    parsedCount += fileChunk.length;
+    process.stdout.write(`  Parsed ${parsedCount}/${allFiles.length}\r`);
   }
 
   console.log(`\n  Resolving edges with TypeScript compiler...`);
 
-  // Phase 2: resolve edges (ts.createProgram) — after all parsing done
-  const resolvedEdges = await resolveEdges(allParsed, projectDir);
+  // Phase 2: resolve edges — file paths only, no ASTs in memory
+  const resolvedEdges = await resolveEdges(allFiles, projectDir);
 
-  // Phase 3: build graph and write nodes + edges
-  const { nodes, edges } = buildGraph(allParsed, resolvedEdges, fileIds);
+  // Phase 3: load all node IDs from SQLite in one sweep, then write edges
+  const nodeIds = new Map(
+    db
+      .all<{ id: number; symbol_id: string }>("SELECT id, symbol_id FROM nodes")
+      .map((n) => [n.symbol_id, BigInt(n.id)]),
+  );
 
-  const nodeIds = new Map<string, bigint>();
+  const seen = new Set<string>();
   db.transaction(() => {
-    for (const node of nodes) {
-      const nid = upsertNode(db, {
-        symbolId: node.symbolId,
-        name: node.name,
-        kind: node.kind,
-        fileId: node.fileId,
-        lineStart: node.lineStart,
-        lineEnd: node.lineEnd,
-        signature: node.signature,
-        isEntry: node.isEntry,
-      });
-      nodeIds.set(node.symbolId, nid);
-    }
-    for (const edge of edges) {
-      const srcId = nodeIds.get(edge.srcSymbolId);
-      const dstId = nodeIds.get(edge.dstSymbolId);
+    for (const e of resolvedEdges) {
+      const key = `${e.srcSymbolId}|${e.dstSymbolId}|${e.kind}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const srcId = nodeIds.get(e.srcSymbolId);
+      const dstId = nodeIds.get(e.dstSymbolId);
       if (srcId && dstId) {
-        upsertEdge(db, { srcId, dstId, kind: edge.kind, key: edge.key });
+        upsertEdge(db, { srcId, dstId, kind: e.kind, key: e.key });
       }
     }
   });
 
-  console.log(`  ${nodes.length} nodes, ${edges.length} edges written`);
+  console.log(`  ${nodeIds.size} nodes, ${seen.size} edges written`);
 
-  // Phase 4: PageRank (from SQLite edge data, TS Program can now be GC'd)
+  // Phase 4: PageRank (TypeScript Program is now eligible for GC)
   console.log("  Computing PageRank...");
   const allNodeIds = [...nodeIds.values()];
   const dbEdges = db
@@ -153,7 +157,7 @@ export async function run(args: string[]): Promise<void> {
     for (const [id, rank] of ranks) updatePagerank(db, id, rank);
   });
 
-  // Phase 5: Community detection (infomap, after PageRank)
+  // Phase 5: Community detection (after PageRank)
   console.log("  Detecting communities...");
   const { communities, method } = await detectCommunities(allNodeIds, dbEdges);
   db.transaction(() => {
