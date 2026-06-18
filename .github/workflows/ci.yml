@@ -51,6 +51,9 @@ jobs:
           cp node_modules/web-tree-sitter/web-tree-sitter.wasm dist/
           cp node_modules/tree-sitter-typescript/tree-sitter-typescript.wasm dist/
 
+      - name: Install fixture dependencies
+        run: bun install --cwd ./fixtures/simple-ts
+
       - name: E2E — build fixture
         run: ./dist/tsgraph build ./fixtures/simple-ts
 
