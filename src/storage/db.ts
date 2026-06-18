@@ -1,7 +1,15 @@
 import { unlinkSync } from "node:fs";
-import { createBunSqliteDb } from "./bun-sqlite.ts";
 import type { SqliteDb } from "./interface.ts";
 import { SCHEMA_STATEMENTS, SCHEMA_VERSION } from "./schema.ts";
+
+// Runtime-conditional factory — resolved once at module init via top-level await.
+// In Bun (dev or compiled): loads bun-sqlite. In Node.js: loads node-sqlite.
+// bun build --target node marks bun:sqlite as external so the bun-sqlite chunk is
+// never executed under Node.js.
+const createDbImpl: (path: string) => SqliteDb =
+  typeof Bun !== "undefined"
+    ? (await import("./bun-sqlite.ts")).createBunSqliteDb
+    : (await import("./node-sqlite.ts")).createNodeSqliteDb;
 
 /** Table names in dependency order (dependents first) for safe DROP. */
 const DROP_ORDER = ["tags", "edges", "nodes", "files"];
@@ -16,9 +24,8 @@ function applySchema(db: SqliteDb): void {
 }
 
 export function openDb(path: string): SqliteDb {
-  const db = createBunSqliteDb(path);
+  const db = createDbImpl(path);
 
-  // Required PRAGMAs on every open (storage.md rule)
   db.run("PRAGMA journal_mode=WAL");
   db.run("PRAGMA busy_timeout=5000");
 
@@ -26,15 +33,11 @@ export function openDb(path: string): SqliteDb {
   const currentVersion = versionRow?.user_version ?? 0;
 
   if (currentVersion === 0) {
-    // Fresh database — apply schema
     applySchema(db);
     return db;
   }
 
   if (currentVersion !== SCHEMA_VERSION) {
-    // Schema version mismatch — nuke and rebuild.
-    // Try file-deletion first (works on Linux/macOS); fall back to in-place
-    // table drop on Windows where WAL files may be locked after close().
     db.close();
 
     let deleted = false;
@@ -48,12 +51,10 @@ export function openDb(path: string): SqliteDb {
     }
 
     if (deleted) {
-      // Main file was deleted — safe to recurse with a fresh db
       return openDb(path);
     }
 
-    // File still locked (Windows WAL) — reset schema in-place
-    const db2 = createBunSqliteDb(path);
+    const db2 = createDbImpl(path);
     db2.run("PRAGMA journal_mode=WAL");
     db2.run("PRAGMA busy_timeout=5000");
     db2.transaction(() => {
