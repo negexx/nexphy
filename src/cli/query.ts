@@ -6,6 +6,11 @@ import { bfsSubgraph } from "../query/bfs.ts";
 import { resolveSeed } from "../query/seed.ts";
 import { openDb } from "../storage/db.ts";
 
+function parseIntOrDefault(raw: string | undefined, fallback: number): number {
+  const n = parseInt(raw ?? String(fallback), 10);
+  return Number.isFinite(n) ? Math.max(0, n) : fallback;
+}
+
 function findDb(override?: string): string {
   if (override) {
     if (!existsSync(override)) {
@@ -47,8 +52,8 @@ export async function run(args: string[]): Promise<void> {
     process.exit(1);
   }
 
-  const depth = Math.max(0, parseInt(values.depth ?? "3", 10));
-  const budget = Math.max(0, parseInt(values.budget ?? "8000", 10));
+  const depth = parseIntOrDefault(values.depth, 3);
+  const budget = parseIntOrDefault(values.budget, 8000);
   const dbPath = findDb(values.db);
   const db = openDb(dbPath);
 

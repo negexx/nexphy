@@ -51,10 +51,10 @@ beforeAll(() => {
     return r.lastInsertRowid;
   }
 
-  idA = insertNode("src/a.ts::A", "A", 0.5);
-  idB = insertNode("src/a.ts::B", "B", 0.4);
-  idC = insertNode("src/a.ts::C", "C", 0.3);
-  idD = insertNode("src/a.ts::D", "D", 0.1);
+  idA = insertNode("src/a.ts#A", "A", 0.5);
+  idB = insertNode("src/a.ts#B", "B", 0.4);
+  idC = insertNode("src/a.ts#C", "C", 0.3);
+  idD = insertNode("src/a.ts#D", "D", 0.1);
 
   db.run("INSERT INTO edges (src, dst, kind) VALUES (?,?,?)", Number(idA), Number(idB), "calls");
   db.run("INSERT INTO edges (src, dst, kind) VALUES (?,?,?)", Number(idB), Number(idC), "calls");
@@ -75,31 +75,31 @@ describe("bfsSubgraph", () => {
   test("discovers direct neighbors at depth 1", () => {
     const result = bfsSubgraph(db, idA, { depth: 1, budget: 100000 });
     const syms = result.nodes.map((n) => n.symbolId);
-    expect(syms).toContain("src/a.ts::B");
-    expect(syms).not.toContain("src/a.ts::C");
+    expect(syms).toContain("src/a.ts#B");
+    expect(syms).not.toContain("src/a.ts#C");
   });
 
   test("discovers transitive nodes at depth 2", () => {
     const result = bfsSubgraph(db, idA, { depth: 2, budget: 100000 });
     const syms = result.nodes.map((n) => n.symbolId);
-    expect(syms).toContain("src/a.ts::B");
-    expect(syms).toContain("src/a.ts::C");
-    expect(syms).toContain("src/a.ts::D");
+    expect(syms).toContain("src/a.ts#B");
+    expect(syms).toContain("src/a.ts#C");
+    expect(syms).toContain("src/a.ts#D");
   });
 
   test("bidirectional — backward edges traversed", () => {
     const result = bfsSubgraph(db, idC, { depth: 2, budget: 100000 });
     const syms = result.nodes.map((n) => n.symbolId);
-    expect(syms).toContain("src/a.ts::B");
-    expect(syms).toContain("src/a.ts::A");
+    expect(syms).toContain("src/a.ts#B");
+    expect(syms).toContain("src/a.ts#A");
   });
 
   test("edges reference correct symbol_ids", () => {
     const result = bfsSubgraph(db, idA, { depth: 1, budget: 100000 });
     expect(result.edges.length).toBeGreaterThan(0);
     const edge = result.edges[0];
-    expect(edge.src).toBe("src/a.ts::A");
-    expect(edge.dst).toBe("src/a.ts::B");
+    expect(edge.src).toBe("src/a.ts#A");
+    expect(edge.dst).toBe("src/a.ts#B");
     expect(edge.kind).toBe("calls");
   });
 
@@ -120,7 +120,7 @@ describe("bfsSubgraph", () => {
     // backward gives A (0.5). A has the highest pagerank so it wins.
     const result = bfsSubgraph(db, idB, { depth: 1, budget: 30 });
     if (result.nodes.length === 1) {
-      expect(result.nodes[0].symbolId).toBe("src/a.ts::A");
+      expect(result.nodes[0].symbolId).toBe("src/a.ts#A");
     }
     // If all three fit (budget was enough), that's also fine
   });
