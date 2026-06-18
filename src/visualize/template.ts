@@ -21,12 +21,12 @@ const COMMUNITY_COLORS = [
 ];
 
 export function buildHtml(data: GraphData): string {
-  const dataJson = JSON.stringify(data);
+  const dataJson = JSON.stringify(data).replace(/<\/script>/gi, "<\\/script>");
   const edgeKinds = [...new Set(data.edges.map((e) => e.kind))].sort();
   const filterChips = edgeKinds
     .map((kind) => {
       const color = EDGE_COLORS[kind] ?? "#888";
-      return `<button class="chip active" data-kind="${kind}" style="--chip-color:${color}" onclick="toggleKind('${kind}', this)">${kind}</button>`;
+      return `<button class="chip active" data-kind="${kind}" style="--chip-color:${color}">${kind}</button>`;
     })
     .join("\n");
 
@@ -91,6 +91,7 @@ svg{width:100%;height:100%}
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script>
 (function(){
+  function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   var COMMUNITY_COLORS=${JSON.stringify(COMMUNITY_COLORS)};
   var EDGE_COLORS=${JSON.stringify(EDGE_COLORS)};
   var nodes=GRAPH_DATA.nodes.map(function(d){return Object.assign({},d);});
@@ -99,9 +100,9 @@ svg{width:100%;height:100%}
   var links=edges
     .filter(function(e){return nodeById.has(e.src)&&nodeById.has(e.dst);})
     .map(function(e){return {source:nodeById.get(e.src),target:nodeById.get(e.dst),kind:e.kind};});
-  var maxPR=Math.max.apply(null,nodes.map(function(n){return n.pagerank;}).concat([0.001]));
+  var maxPR=nodes.reduce(function(m,n){return Math.max(m,n.pagerank);},0.001);
   function nodeRadius(d){return 4+14*Math.log1p(d.pagerank)/Math.log1p(maxPR);}
-  function nodeColor(d){return COMMUNITY_COLORS[d.community%COMMUNITY_COLORS.length];}
+  function nodeColor(d){return COMMUNITY_COLORS[((d.community%COMMUNITY_COLORS.length)+COMMUNITY_COLORS.length)%COMMUNITY_COLORS.length];}
   var sorted=nodes.slice().sort(function(a,b){return b.pagerank-a.pagerank;});
   var topN=Math.max(1,Math.floor(nodes.length*0.2));
   var prThreshold=sorted[topN-1]?sorted[topN-1].pagerank:0;
@@ -198,27 +199,30 @@ svg{width:100%;height:100%}
   function showNodeInfo(d){
     var degree=links.filter(function(l){return l.source.id===d.id||l.target.id===d.id;}).length;
     document.getElementById('node-info').innerHTML=
-      '<div class="info-name">'+d.name+'</div>'+
-      '<div class="info-file">'+d.file+':'+d.line+'</div>'+
-      '<span class="info-badge">'+d.kind+'</span>'+
+      '<div class="info-name">'+escapeHtml(d.name)+'</div>'+
+      '<div class="info-file">'+escapeHtml(d.file)+':'+d.line+'</div>'+
+      '<span class="info-badge">'+escapeHtml(d.kind)+'</span>'+
       '<div class="info-row"><span class="info-key">PageRank</span><span class="info-val">'+d.pagerank.toFixed(4)+'</span></div>'+
       '<div class="info-row"><span class="info-key">Community</span><span class="info-val">'+d.community+'</span></div>'+
       '<div class="info-row"><span class="info-key">Edges</span><span class="info-val">'+degree+'</span></div>';
   }
   var tooltip=document.getElementById('tooltip');
   function showTooltip(event,d){
-    tooltip.innerHTML='<div class="t-name">'+d.name+'</div><div class="t-file">'+d.file+':'+d.line+'</div><div class="t-kind">'+d.kind+'</div>';
+    tooltip.innerHTML='<div class="t-name">'+escapeHtml(d.name)+'</div><div class="t-file">'+escapeHtml(d.file)+':'+d.line+'</div><div class="t-kind">'+escapeHtml(d.kind)+'</div>';
     tooltip.style.display='block';
     tooltip.style.left=(event.clientX+14)+'px';
     tooltip.style.top=(event.clientY-10)+'px';
   }
   function hideTooltip(){tooltip.style.display='none';}
   window.onSearch=function(val){searchTerm=val.trim().toLowerCase();applyFilters();};
-  window.toggleKind=function(kind,btn){
+  document.getElementById('filters').addEventListener('click',function(event){
+    var btn=event.target;
+    if(!btn.classList.contains('chip'))return;
+    var kind=btn.dataset.kind;
     if(activeKinds.has(kind)){activeKinds.delete(kind);btn.classList.remove('active');}
     else{activeKinds.add(kind);btn.classList.add('active');}
     applyFilters();
-  };
+  });
   function applyFilters(){
     if(focusedId)return;
     var visibleIds=new Set();
