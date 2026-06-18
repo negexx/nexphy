@@ -29,6 +29,7 @@ Usage:
   nexphy build <dir>     Build the knowledge graph for a TypeScript project
   nexphy query <seed>    Query the graph around a symbol
   nexphy explain-edges   Show how framework edges are detected
+  nexphy visualize [--db <path>] [--output <path>] [--open]  Generate graph.html visualization
 
 Options:
   -v, --version  Show version
@@ -51,6 +52,11 @@ switch (command) {
   case "explain-edges":
     await import("./cli/explain-edges.ts").then((m) => m.run(subArgs));
     break;
+  case "visualize": {
+    const { run } = await import("./cli/visualize.ts");
+    await run(subArgs);
+    break;
+  }
   default:
     console.error(`Unknown command: ${command}`);
     process.exit(1);
