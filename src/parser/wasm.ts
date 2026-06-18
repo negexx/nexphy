@@ -2,16 +2,22 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-// In Bun dev mode, process.execPath ends with "bun" or "bun.exe".
-// In a compiled Bun binary or Node.js, it does not.
-const isCompiled = !process.execPath.endsWith("bun") && !process.execPath.endsWith("bun.exe");
+// Three-way sentinel:
+//   Node.js:          typeof Bun === "undefined" → not compiled, use import.meta.url
+//   Bun dev mode:     Bun runtime + execPath ends with "bun"/"bun.exe" → not compiled, use import.meta.url
+//   Bun compiled:     Bun runtime + execPath does NOT end with "bun"/"bun.exe" → use dirname(process.execPath)
+const isBunRuntime = typeof Bun !== "undefined";
+const isCompiled =
+  isBunRuntime &&
+  !process.execPath.endsWith("bun") &&
+  !process.execPath.endsWith("bun.exe");
 
 function getModuleDir(): string {
   if (isCompiled) {
     // Compiled binary: WASM sidecars must be placed next to the executable.
     return dirname(process.execPath);
   }
-  // Dev mode (Bun or Node): resolve from this file's location.
+  // Node.js or Bun dev mode: resolve from this file's location.
   return dirname(fileURLToPath(import.meta.url));
 }
 
