@@ -39,26 +39,30 @@ export function loadGraphData(db: SqliteDb, project: string): GraphData {
   }>(
     `SELECT n.symbol_id, n.name, n.kind, COALESCE(f.path, '') AS path, n.line_start, n.pagerank, n.community
      FROM nodes n
-     LEFT JOIN files f ON n.file_id = f.id
-     WHERE n.name NOT LIKE '<module>%'`,
+     LEFT JOIN files f ON n.file_id = f.id`,
   );
 
-  const nodes: GraphNode[] = rawNodes.map((r) => ({
-    id: r.symbol_id,
-    name: r.name,
-    kind: r.kind,
-    file: r.path,
-    line: r.line_start ?? 0,
-    pagerank: r.pagerank ?? 0,
-    community: r.community ?? 0,
-  }));
+  const nodes: GraphNode[] = rawNodes.map((r) => {
+    const isModule = r.name.startsWith("<module>");
+    const name = isModule
+      ? (r.path.split("/").pop() ?? r.path.split("\\").pop() ?? r.name)
+      : r.name;
+    return {
+      id: r.symbol_id,
+      name,
+      kind: isModule ? "file" : r.kind,
+      file: r.path,
+      line: r.line_start ?? 0,
+      pagerank: r.pagerank ?? 0,
+      community: r.community ?? 0,
+    };
+  });
 
   const rawEdges = db.all<{ src: string; dst: string; kind: string }>(
     `SELECT ns.symbol_id AS src, nd.symbol_id AS dst, e.kind
      FROM edges e
      JOIN nodes ns ON e.src = ns.id
-     JOIN nodes nd ON e.dst = nd.id
-     WHERE ns.name NOT LIKE '<module>%' AND nd.name NOT LIKE '<module>%'`,
+     JOIN nodes nd ON e.dst = nd.id`,
   );
 
   const tsRow = db.get<{ max_at: number | null }>("SELECT MAX(analyzed_at) AS max_at FROM files");
