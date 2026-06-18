@@ -5,7 +5,8 @@ export type SymbolKind =
   | "type"
   | "const"
   | "enum"
-  | "variable";
+  | "variable"
+  | "module"; // synthetic per-file node; represents the file itself for import/re-export edges
 
 export interface ParsedSymbol {
   symbolId: string; // "posix/path/file.ts#Name" — unique per file+name

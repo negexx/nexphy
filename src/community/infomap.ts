@@ -1,4 +1,5 @@
 // src/community/infomap.ts
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -31,7 +32,7 @@ function buildPajek(nodeIds: bigint[], edges: { src: bigint; dst: bigint }[]): s
 function parseClu(content: string, nodeIds: bigint[]): Map<bigint, number> {
   const result = new Map<bigint, number>();
   for (const line of content.split("\n")) {
-    if (line.startsWith("*") || line.trim() === "") continue;
+    if (line.startsWith("#") || line.startsWith("*") || line.trim() === "") continue;
     const parts = line.trim().split(/\s+/);
     const idx = Number.parseInt(parts[0], 10) - 1;
     const community = Number.parseInt(parts[1], 10);
@@ -53,18 +54,20 @@ export async function detectCommunities(
   const workDir = join(tmpdir(), `tsgraph-infomap-${Date.now()}`);
   mkdirSync(workDir, { recursive: true });
   const netFile = join(workDir, "graph.net");
-  const outBase = join(workDir, "out");
+  // infomap names its output after the input file's stem: graph.net → graph.clu
+  const cluFile = join(workDir, "graph.clu");
 
   writeFileSync(netFile, buildPajek(nodeIds, edges));
 
   try {
-    const proc = Bun.spawn(["infomap", netFile, workDir, "--clu", "--silent"], {
-      stdout: "ignore",
-      stderr: "ignore",
+    const result = spawnSync("infomap", [netFile, workDir, "--clu", "--silent", "--seed", "42"], {
+      stdio: "ignore",
     });
-    await proc.exited;
 
-    const cluFile = `${outBase}.clu`;
+    if (result.error || result.status !== 0) {
+      throw result.error ?? new Error(`infomap exited with code ${result.status}`);
+    }
+
     if (!existsSync(cluFile)) {
       throw new Error("infomap produced no .clu output");
     }
