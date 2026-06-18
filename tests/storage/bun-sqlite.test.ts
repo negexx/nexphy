@@ -86,6 +86,21 @@ describe("createBunSqliteDb", () => {
     db.close();
   });
 
+  test("prepare() statement get() and all() work correctly", () => {
+    const db = createBunSqliteDb(makeTempPath());
+    db.exec("CREATE TABLE t (id INTEGER PRIMARY KEY AUTOINCREMENT, v TEXT)");
+    db.run("INSERT INTO t (v) VALUES (?)", "alpha");
+    db.run("INSERT INTO t (v) VALUES (?)", "beta");
+
+    const getStmt = db.prepare<{ v: string }>("SELECT v FROM t WHERE id = ?");
+    expect(getStmt.get(1)?.v).toBe("alpha");
+    expect(getStmt.get(999)).toBeUndefined();
+
+    const allStmt = db.prepare<{ v: string }>("SELECT v FROM t ORDER BY id");
+    expect(allStmt.all().map((r) => r.v)).toEqual(["alpha", "beta"]);
+    db.close();
+  });
+
   test("transaction() rolls back all changes on error", () => {
     const db = createBunSqliteDb(makeTempPath());
     db.exec("CREATE TABLE t (id INTEGER PRIMARY KEY AUTOINCREMENT, v TEXT NOT NULL)");

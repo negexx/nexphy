@@ -17,13 +17,12 @@
     "proto:all": "bun run scripts/validate-prototypes.ts"
   },
   "dependencies": {
-    "@mapequation/infomap": "^1.0.0",
     "tree-sitter-typescript": "^0.23.2",
-    "web-tree-sitter": "^0.25.0"
+    "web-tree-sitter": "^0.26.9"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.0",
+    "@biomejs/biome": "^2.5.0",
     "@types/bun": "latest",
-    "typescript": "^5.8.0"
+    "typescript": "^6.0.3"
   }
 }

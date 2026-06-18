@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -48,6 +48,15 @@ describe("openDb", () => {
     const db = openDb(path);
     const row = db.get<{ journal_mode: string }>("PRAGMA journal_mode");
     expect(row?.journal_mode).toBe("wal");
+    db.close();
+    cleanup(path);
+  });
+
+  test("busy_timeout is set to 5000ms", () => {
+    const path = makeTempDb();
+    const db = openDb(path);
+    const row = db.get<{ timeout: number }>("PRAGMA busy_timeout");
+    expect(row?.timeout).toBe(5000);
     db.close();
     cleanup(path);
   });
