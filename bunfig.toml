@@ -1,0 +1,3 @@
+[test]
+# Exclude tests that require native Node.js addons (better-sqlite3 / bun#4290)
+pathIgnorePatterns = ["**/node-sqlite*"]

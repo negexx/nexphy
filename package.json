@@ -11,17 +11,20 @@
     "build:node": "bun build src/cli.ts --outdir dist/node --target node",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
+    "test:node": "node --experimental-strip-types --test tests/storage/node-sqlite.test.ts",
     "lint": "bunx @biomejs/biome check .",
     "proto:infomap": "bun run prototypes/infomap-bun.ts",
     "proto:tree-sitter": "bun run prototypes/tree-sitter-bun.ts",
     "proto:all": "bun run scripts/validate-prototypes.ts"
   },
   "dependencies": {
+    "better-sqlite3": "^12.11.1",
     "tree-sitter-typescript": "^0.23.2",
     "web-tree-sitter": "^0.26.9"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/bun": "latest",
     "typescript": "^6.0.3"
   }
