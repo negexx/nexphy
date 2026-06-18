@@ -1,6 +1,5 @@
-// src/analyzer/resolve.ts
-import * as ts from "typescript";
-import type { ParsedFile } from "../parser/types.ts";
+import { createRequire } from "node:module";
+import { join } from "node:path";
 import type { ResolvedEdge } from "./types.ts";
 
 function posix(p: string): string {
@@ -8,33 +7,35 @@ function posix(p: string): string {
 }
 
 export async function resolveEdges(
-  files: ParsedFile[],
+  filePaths: string[],
   projectRoot: string,
 ): Promise<ResolvedEdge[]> {
+  const req = createRequire(join(projectRoot, "package.json"));
+  // Load TypeScript from the analyzed project so the correct version is used.
+  const ts = req("typescript") as typeof import("typescript");
+
   const tsconfig = ts.findConfigFile(projectRoot, ts.sys.fileExists, "tsconfig.json");
   const configFile = tsconfig ? ts.readConfigFile(tsconfig, ts.sys.readFile) : { config: {} };
-  const parsedConfig = ts.parseJsonConfigFileContent(
-    configFile.config,
-    ts.sys,
-    projectRoot,
-    { noEmit: true, plugins: [] }, // always disable plugins (security)
-  );
+  const parsedConfig = ts.parseJsonConfigFileContent(configFile.config, ts.sys, projectRoot, {
+    noEmit: true,
+    plugins: [],
+  });
 
   const program = ts.createProgram({
-    rootNames: files.map((f) => f.path.replace(/\//g, process.platform === "win32" ? "\\" : "/")),
+    rootNames: filePaths.map((p) => p.replace(/\//g, process.platform === "win32" ? "\\" : "/")),
     options: parsedConfig.options,
   });
 
   const checker = program.getTypeChecker();
+  const fileSet = new Set(filePaths.map(posix));
   const edges: ResolvedEdge[] = [];
 
   for (const sourceFile of program.getSourceFiles()) {
     if (sourceFile.isDeclarationFile) continue;
     const filePath = posix(sourceFile.fileName);
-    if (!files.some((f) => posix(f.path) === filePath)) continue;
+    if (!fileSet.has(filePath)) continue;
 
     ts.forEachChild(sourceFile, function visit(node) {
-      // Import edges
       if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
         const resolved = checker.getSymbolAtLocation(node.moduleSpecifier);
         const decls = resolved?.declarations;
@@ -49,7 +50,6 @@ export async function resolveEdges(
         }
       }
 
-      // Call expression edges
       if (ts.isCallExpression(node)) {
         const sym = checker.getSymbolAtLocation(node.expression);
         const decls = sym?.declarations;
@@ -66,7 +66,6 @@ export async function resolveEdges(
         }
       }
 
-      // Heritage edges (extends / implements)
       if (ts.isHeritageClause(node)) {
         for (const expr of node.types) {
           const sym = checker.getSymbolAtLocation(expr.expression);
@@ -88,6 +87,5 @@ export async function resolveEdges(
     });
   }
 
-  // Allow GC of the program before returning (infomap constraint)
   return edges;
 }
