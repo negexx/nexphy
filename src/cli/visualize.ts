@@ -38,7 +38,7 @@ export async function run(args: string[]): Promise<void> {
   });
 
   const dbPath = findDb(values.db);
-  const outputPath = resolve(values.output ?? "graph.html");
+  const outputPath = resolve(values.output);
   const project = basename(dirname(resolve(dbPath)));
 
   const db = openDb(dbPath);
@@ -46,9 +46,7 @@ export async function run(args: string[]): Promise<void> {
     const data = loadGraphData(db, project);
     const html = buildHtml(data);
     await Bun.write(outputPath, html);
-    process.stderr.write(
-      `Wrote ${outputPath} (${data.meta.nodeCount} nodes, ${data.meta.edgeCount} edges)\n`,
-    );
+    console.log(`Wrote ${outputPath} (${data.meta.nodeCount} nodes, ${data.meta.edgeCount} edges)`);
   } finally {
     db.close();
   }
@@ -59,10 +57,10 @@ export async function run(args: string[]): Promise<void> {
     if (platform === "darwin") {
       cmd = ["open", outputPath];
     } else if (platform === "win32") {
-      cmd = ["cmd", "/c", "start", outputPath];
+      cmd = ["cmd", "/c", "start", '""', outputPath];
     } else {
       cmd = ["xdg-open", outputPath];
     }
-    Bun.spawn(cmd, { stdout: "inherit", stderr: "inherit" });
+    await Bun.spawn(cmd, { stdout: "inherit", stderr: "inherit" }).exited;
   }
 }
