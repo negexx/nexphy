@@ -6,7 +6,7 @@ import { openDb } from "../../src/storage/db.ts";
 import { SCHEMA_VERSION } from "../../src/storage/schema.ts";
 
 function makeTempDb(): string {
-  return join(tmpdir(), `tsgraph-test-db-${Date.now()}-${Math.random().toString(36).slice(2)}.db`);
+  return join(tmpdir(), `nexphy-test-db-${Date.now()}-${Math.random().toString(36).slice(2)}.db`);
 }
 
 function cleanup(path: string) {

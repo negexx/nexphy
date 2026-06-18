@@ -5,7 +5,7 @@ import { run } from "../../src/cli/build.ts";
 import { openDb } from "../../src/storage/db.ts";
 
 const fixtureDir = join(import.meta.dir, "../../fixtures/simple-ts");
-const dbPath = join(fixtureDir, ".tsgraph.db");
+const dbPath = join(fixtureDir, ".nexphy.db");
 
 function cleanupDb() {
   for (const suffix of ["", "-wal", "-shm"]) {
@@ -27,7 +27,7 @@ describe("build command E2E", () => {
     cleanupDb();
   });
 
-  test("creates .tsgraph.db in the project directory", () => {
+  test("creates .nexphy.db in the project directory", () => {
     expect(existsSync(dbPath)).toBe(true);
   });
 

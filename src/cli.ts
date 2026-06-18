@@ -14,7 +14,7 @@ const { values } = parseArgs({
 });
 
 if (values.version) {
-  console.log("tsgraph 0.1.0");
+  console.log("nexphy 0.1.0");
   process.exit(0);
 }
 
@@ -23,12 +23,12 @@ const firstPositional = rawArgs.find((a) => !a.startsWith("-"));
 
 if (values.help || !firstPositional) {
   console.log(`
-tsgraph — TypeScript Code Graph CLI
+nexphy — TypeScript Code Graph CLI
 
 Usage:
-  tsgraph build <dir>     Build the knowledge graph for a TypeScript project
-  tsgraph query <seed>    Query the graph around a symbol
-  tsgraph explain-edges   Show how framework edges are detected
+  nexphy build <dir>     Build the knowledge graph for a TypeScript project
+  nexphy query <seed>    Query the graph around a symbol
+  nexphy explain-edges   Show how framework edges are detected
 
 Options:
   -v, --version  Show version

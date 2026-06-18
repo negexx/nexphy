@@ -21,11 +21,11 @@ function findDb(override?: string): string {
   }
   let dir = process.cwd();
   while (true) {
-    const candidate = join(dir, ".tsgraph.db");
+    const candidate = join(dir, ".nexphy.db");
     if (existsSync(candidate)) return candidate;
     const parent = dirname(dir);
     if (parent === dir) {
-      console.error("error: .tsgraph.db not found. Run `tsgraph build <dir>` first.");
+      console.error("error: .nexphy.db not found. Run `nexphy build <dir>` first.");
       process.exit(1);
     }
     dir = parent;
@@ -46,7 +46,7 @@ export async function run(args: string[]): Promise<void> {
   const seed = positionals[0];
   if (!seed) {
     console.error(
-      "Usage: tsgraph query <seed> [--depth N] [--budget N] [--db path]\n" +
+      "Usage: nexphy query <seed> [--depth N] [--budget N] [--db path]\n" +
         "  <seed>  Symbol name (e.g. greet) or qualified ID (e.g. src/index.ts#greet)",
     );
     process.exit(1);

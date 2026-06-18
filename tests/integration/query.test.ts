@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { run as buildRun } from "../../src/cli/build.ts";
 
 const fixtureDir = join(import.meta.dir, "../../fixtures/simple-ts");
-const dbPath = join(fixtureDir, ".tsgraph.db");
+const dbPath = join(fixtureDir, ".nexphy.db");
 
 function cleanupDb() {
   for (const suffix of ["", "-wal", "-shm"]) {
@@ -38,7 +38,7 @@ afterAll(() => {
   cleanupDb();
 });
 
-describe("tsgraph query", () => {
+describe("nexphy query", () => {
   test("resolves seed by bare name and returns JSON", async () => {
     const output = await runQuery(["greet"]);
     expect((output.seed as { name: string }).name).toBe("greet");

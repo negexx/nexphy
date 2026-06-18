@@ -69,7 +69,7 @@ function chunk<T>(arr: T[], size: number): T[][] {
 
 export async function run(args: string[]): Promise<void> {
   const projectDir = resolve(args[0] ?? ".");
-  const dbPath = join(projectDir, ".tsgraph.db");
+  const dbPath = join(projectDir, ".nexphy.db");
   const cfg = loadConfig(projectDir);
   const db = openDb(dbPath);
 
@@ -79,7 +79,7 @@ export async function run(args: string[]): Promise<void> {
     process.exit(1);
   }
 
-  console.log(`tsgraph build: ${allFiles.length} files in ${projectDir}`);
+  console.log(`nexphy build: ${allFiles.length} files in ${projectDir}`);
   console.log(`Chunk size: ${cfg.chunkSize}`);
 
   // Remove file records (and their nodes) for files that no longer exist on disk.

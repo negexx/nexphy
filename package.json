@@ -13,7 +13,7 @@
   },
   "scripts": {
     "dev": "bun run src/cli.ts",
-    "build": "bun build --compile src/cli.ts --outfile dist/tsgraph",
+    "build": "bun build --compile src/cli.ts --outfile dist/nexphy",
     "build:node": "bun scripts/build-node.ts",
     "build:bins": "bun scripts/build-bins.ts",
     "build:all": "bun run build:node && bun run build:bins",
@@ -23,7 +23,8 @@
     "lint": "bunx @biomejs/biome check .",
     "proto:infomap": "bun run prototypes/infomap-bun.ts",
     "proto:tree-sitter": "bun run prototypes/tree-sitter-bun.ts",
-    "proto:all": "bun run scripts/validate-prototypes.ts"
+    "proto:all": "bun run scripts/validate-prototypes.ts",
+    "benchmark": "bun run scripts/benchmark.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.11.1",
