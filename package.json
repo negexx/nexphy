@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "better-sqlite3": "^12.11.1",
+    "smol-toml": "^1.6.1",
     "tree-sitter-typescript": "^0.23.2",
     "web-tree-sitter": "^0.26.9"
   },
