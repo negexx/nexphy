@@ -47,7 +47,7 @@ export async function run(args: string[]): Promise<void> {
     const html = buildHtml(data);
     await Bun.write(outputPath, html);
     process.stderr.write(
-      `Wrote ${values.output ?? "graph.html"} (${data.meta.nodeCount} nodes, ${data.meta.edgeCount} edges)\n`,
+      `Wrote ${outputPath} (${data.meta.nodeCount} nodes, ${data.meta.edgeCount} edges)\n`,
     );
   } finally {
     db.close();
