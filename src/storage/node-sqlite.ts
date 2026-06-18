@@ -31,6 +31,7 @@ class NodeSqliteDb implements SqliteDb {
 
   constructor(path: string) {
     this.db = new BetterSqlite3(path);
+    this.db.defaultSafeIntegers(true);
   }
 
   prepare<T = unknown>(sql: string): SqliteStatement<T> {
