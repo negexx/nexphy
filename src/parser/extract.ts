@@ -48,7 +48,7 @@ function getName(node: Node): string | null {
   if (nameNode) return nameNode.text;
 
   // lexical_declaration: const foo = ... → variable_declarator → name
-  const declarator = node.children.find((c: Node) => c.type === "variable_declarator");
+  const declarator = node.children.find((c) => c !== null && c.type === "variable_declarator");
   if (declarator) {
     const n = declarator.childForFieldName("name");
     if (n) return n.text;
@@ -61,6 +61,7 @@ function isTypeOnlyImport(node: Node): boolean {
   // `import type { Foo } from "..."` — the `type` keyword is a direct child
   // of the import_statement, immediately after the `import` keyword
   for (const child of node.children) {
+    if (!child) continue;
     if (child.type === "type") return true;
     if (child.type === "import_clause") break;
   }
@@ -70,22 +71,24 @@ function isTypeOnlyImport(node: Node): boolean {
 function extractImports(root: Node, absPath: string): ParsedImport[] {
   const imports: ParsedImport[] = [];
   for (const child of root.children) {
+    if (!child) continue;
     if (child.type !== "import_statement") continue;
 
     // Skip type-only imports — they carry no runtime dependency
     if (isTypeOnlyImport(child)) continue;
 
-    const sourceNode = child.children.find((c: Node) => c.type === "string");
+    const sourceNode = child.children.find((c) => c !== null && c.type === "string");
     if (!sourceNode) continue;
     const specifier = sourceNode.text.replace(/^["']|["']$/g, "");
 
     const names: string[] = [];
-    const clause = child.children.find((c: Node) => c.type === "import_clause");
+    const clause = child.children.find((c) => c !== null && c.type === "import_clause");
     if (clause) {
       // Named imports: { foo, bar }
-      const named = clause.children.find((c: Node) => c.type === "named_imports");
+      const named = clause.children.find((c) => c !== null && c.type === "named_imports");
       if (named) {
         for (const spec of named.children) {
+          if (!spec) continue;
           if (spec.type === "import_specifier") {
             const n = spec.childForFieldName("name")?.text;
             if (n) names.push(n);
@@ -93,7 +96,7 @@ function extractImports(root: Node, absPath: string): ParsedImport[] {
         }
       }
       // Default import: import foo from "..."
-      const defaultImport = clause.children.find((c: Node) => c.type === "identifier");
+      const defaultImport = clause.children.find((c) => c !== null && c.type === "identifier");
       if (defaultImport) names.push("default");
     }
 
@@ -117,13 +120,14 @@ export async function extractFile(
   const usedNames = new Map<string, number>();
 
   for (const child of root.children) {
+    if (!child) continue;
     let decl = child;
     let isEntry = false;
 
     if (child.type === "export_statement") {
       isEntry = true;
       // Find the actual declaration inside the export_statement
-      const inner = child.children.find((c: Node) => kindOf(c.type) !== null);
+      const inner = child.children.find((c) => c !== null && kindOf(c.type) !== null);
       if (!inner) continue;
       decl = inner;
     }

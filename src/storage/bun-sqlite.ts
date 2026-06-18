@@ -1,5 +1,5 @@
-import { Database } from "bun:sqlite";
 import type { SQLQueryBindings } from "bun:sqlite";
+import { Database } from "bun:sqlite";
 import type { RowResult, SqliteDb, SqliteStatement } from "./interface.ts";
 
 type Params = SQLQueryBindings[];
