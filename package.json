@@ -1,14 +1,22 @@
 {
-  "name": "tsgraph",
+  "name": "nexphy",
   "version": "0.1.0",
   "type": "module",
   "bin": {
-    "tsgraph": "./dist/tsgraph"
+    "nexphy": "./dist/node/cli.js"
+  },
+  "files": [
+    "dist/node/**"
+  ],
+  "exports": {
+    ".": "./dist/node/cli.js"
   },
   "scripts": {
     "dev": "bun run src/cli.ts",
     "build": "bun build --compile src/cli.ts --outfile dist/tsgraph",
-    "build:node": "bun build src/cli.ts --outdir dist/node --target node",
+    "build:node": "bun scripts/build-node.ts",
+    "build:bins": "bun scripts/build-bins.ts",
+    "build:all": "bun run build:node && bun run build:bins",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "test:node": "node --experimental-strip-types --test tests/storage/node-sqlite.test.ts",
