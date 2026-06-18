@@ -1,5 +1,5 @@
-import { LEGEND } from "./legend.ts";
 import type { BfsResult, NodeRow, QueryOutput } from "../query/types.ts";
+import { LEGEND } from "./legend.ts";
 
 function nodeToOutput(n: NodeRow): QueryOutput["seed"] {
   return {
