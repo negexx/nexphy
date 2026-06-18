@@ -20,13 +20,22 @@ const COMMUNITY_COLORS = [
   "#79c0ff",
 ];
 
+function escapeAttr(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export function buildHtml(data: GraphData): string {
   const dataJson = JSON.stringify(data).replace(/<\/script>/gi, "<\\/script>");
   const edgeKinds = [...new Set(data.edges.map((e) => e.kind))].sort();
   const filterChips = edgeKinds
     .map((kind) => {
       const color = EDGE_COLORS[kind] ?? "#888";
-      return `<button class="chip active" data-kind="${kind}" style="--chip-color:${color}">${kind}</button>`;
+      const safeKind = escapeAttr(kind);
+      return `<button class="chip active" data-kind="${safeKind}" style="--chip-color:${color}">${safeKind}</button>`;
     })
     .join("\n");
 
@@ -34,7 +43,7 @@ export function buildHtml(data: GraphData): string {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>nexphy — ${data.meta.project}</title>
+<title>nexphy — ${escapeAttr(data.meta.project)}</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0d0f14;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;display:flex;height:100vh;overflow:hidden}
@@ -73,11 +82,11 @@ svg{width:100%;height:100%}
 <div id="sidebar">
   <div id="sidebar-header">
     <span class="logo">NEXPHY</span>
-    <span class="meta">${data.meta.project}</span>
+    <span class="meta">${escapeAttr(data.meta.project)}</span>
     <span class="meta">${data.meta.nodeCount} nodes · ${data.meta.edgeCount} edges</span>
   </div>
   <div id="search-wrap">
-    <input id="search" type="text" placeholder="search symbol…" oninput="onSearch(this.value)">
+    <input id="search" type="text" placeholder="search symbol…">
   </div>
   <div id="filters-wrap">
     <div id="filters-label">Edge kinds</div>
@@ -106,6 +115,8 @@ svg{width:100%;height:100%}
   var sorted=nodes.slice().sort(function(a,b){return b.pagerank-a.pagerank;});
   var topN=Math.max(1,Math.floor(nodes.length*0.2));
   var prThreshold=sorted[topN-1]?sorted[topN-1].pagerank:0;
+  // If all pageranks are 0, show no labels (threshold unreachable)
+  var showLabels=prThreshold>0;
   var svg=d3.select('#graph');
   function W(){return svg.node().clientWidth;}
   function H(){return svg.node().clientHeight;}
@@ -149,7 +160,7 @@ svg{width:100%;height:100%}
     .attr('dy',function(d){return -nodeRadius(d)-3;})
     .attr('text-anchor','middle')
     .text(function(d){return d.name;})
-    .attr('opacity',function(d){return d.pagerank>=prThreshold?0.85:0;});
+    .style('display',function(d){return(showLabels&&d.pagerank>=prThreshold)?'block':'none';});
   var simulation=d3.forceSimulation(nodes)
     .force('link',d3.forceLink(links).id(function(d){return d.id;}).distance(60))
     .force('charge',d3.forceManyBody().strength(-180))
@@ -184,7 +195,7 @@ svg{width:100%;height:100%}
     node.selectAll('circle').attr('opacity',function(n){return neighborIds.has(n.id)?1:0.08;});
     node.selectAll('text').attr('opacity',function(n){
       if(!neighborIds.has(n.id))return 0;
-      return(n.id===d.id||n.pagerank>=prThreshold)?0.85:0.7;
+      return(n.id===d.id||(showLabels&&n.pagerank>=prThreshold))?0.85:0.7;
     });
     link.attr('stroke-opacity',function(l){
       return(l.source.id===d.id||l.target.id===d.id)&&activeKinds.has(l.kind)?0.9:0.04;
@@ -200,7 +211,7 @@ svg{width:100%;height:100%}
     var degree=links.filter(function(l){return l.source.id===d.id||l.target.id===d.id;}).length;
     document.getElementById('node-info').innerHTML=
       '<div class="info-name">'+escapeHtml(d.name)+'</div>'+
-      '<div class="info-file">'+escapeHtml(d.file)+':'+d.line+'</div>'+
+      '<div class="info-file">'+escapeHtml(d.file)+':'+(Number(d.line)|0)+'</div>'+
       '<span class="info-badge">'+escapeHtml(d.kind)+'</span>'+
       '<div class="info-row"><span class="info-key">PageRank</span><span class="info-val">'+d.pagerank.toFixed(4)+'</span></div>'+
       '<div class="info-row"><span class="info-key">Community</span><span class="info-val">'+d.community+'</span></div>'+
@@ -208,13 +219,13 @@ svg{width:100%;height:100%}
   }
   var tooltip=document.getElementById('tooltip');
   function showTooltip(event,d){
-    tooltip.innerHTML='<div class="t-name">'+escapeHtml(d.name)+'</div><div class="t-file">'+escapeHtml(d.file)+':'+d.line+'</div><div class="t-kind">'+escapeHtml(d.kind)+'</div>';
+    tooltip.innerHTML='<div class="t-name">'+escapeHtml(d.name)+'</div><div class="t-file">'+escapeHtml(d.file)+':'+(Number(d.line)|0)+'</div><div class="t-kind">'+escapeHtml(d.kind)+'</div>';
     tooltip.style.display='block';
     tooltip.style.left=(event.clientX+14)+'px';
     tooltip.style.top=(event.clientY-10)+'px';
   }
   function hideTooltip(){tooltip.style.display='none';}
-  window.onSearch=function(val){searchTerm=val.trim().toLowerCase();applyFilters();};
+  document.getElementById('search').addEventListener('input',function(){searchTerm=this.value.toLowerCase();applyFilters();});
   document.getElementById('filters').addEventListener('click',function(event){
     var btn=event.target;
     if(!btn.classList.contains('chip'))return;
@@ -244,15 +255,20 @@ svg{width:100%;height:100%}
     });
     node.selectAll('text').attr('opacity',function(n){
       if(!visibleIds.has(n.id))return 0;
-      return n.pagerank>=prThreshold?0.85:0;
+      return(showLabels&&n.pagerank>=prThreshold)?0.85:0;
     });
     link.attr('stroke-opacity',function(l){
       return activeKinds.has(l.kind)&&visibleIds.has(l.source.id)&&visibleIds.has(l.target.id)?0.4:0;
     });
   }
+  var resizeTimer;
   window.addEventListener('resize',function(){
-    simulation.force('center',d3.forceCenter(W()/2,H()/2));
-    simulation.alpha(0.1).restart();
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(function(){
+      svg.attr('viewBox',[0,0,W(),H()]);
+      simulation.force('center',d3.forceCenter(W()/2,H()/2));
+      simulation.alpha(0.1).restart();
+    },150);
   });
 })();
 </script>
