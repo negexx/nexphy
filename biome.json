@@ -12,6 +12,14 @@
     "lineWidth": 100
   },
   "files": {
-    "includes": ["**", "!dist", "!**/node_modules/", "!**/*.wasm", "!.superpowers"]
+    "includes": [
+      "**",
+      "!dist",
+      "!**/node_modules/",
+      "!**/*.wasm",
+      "!.superpowers",
+      "!graph.html",
+      "!*.graph.html"
+    ]
   }
 }

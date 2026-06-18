@@ -61,7 +61,7 @@ export async function run(args: string[]): Promise<void> {
     const seedNode = resolveSeed(db, seed);
     const bfsResult = bfsSubgraph(db, seedNode.id, { depth, budget });
     const output = serializeQuery(seedNode, bfsResult);
-    console.log(JSON.stringify(output, null, 2));
+    console.log(JSON.stringify(output, (_k, v) => (typeof v === "bigint" ? v.toString() : v), 2));
   } catch (err) {
     console.error(`error: ${err instanceof Error ? err.message : String(err)}`);
     process.exit(1);

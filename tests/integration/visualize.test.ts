@@ -42,10 +42,15 @@ describe("loadGraphData", () => {
     }
   });
 
-  test("no <module> nodes in output", () => {
+  test("<module> nodes are converted to kind:file with filename as name", () => {
     const data = loadGraphData(db, fixtureDir);
     for (const n of data.nodes) {
-      expect(n.name).not.toMatch(/^<module/);
+      // Raw "<module>" name must never appear — they are renamed to their filename
+      expect(n.name).not.toBe("<module>");
+      // file-kind nodes must have a real filename (not empty, not the raw tag)
+      if (n.kind === "file") {
+        expect(n.name).toMatch(/\.(ts|js|tsx|jsx|mts|mjs)$/);
+      }
     }
   });
 

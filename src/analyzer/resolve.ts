@@ -1,3 +1,4 @@
+import * as path from "node:path";
 import * as ts from "typescript";
 import type { EdgeKind, ResolvedEdge } from "./types.ts";
 
@@ -42,7 +43,10 @@ export function resolveEdges(filePaths: string[], projectRoot: string): Resolved
     );
     console.warn(`nexphy: tsconfig read error: ${msg}`);
   }
-  const parsedConfig = ts.parseJsonConfigFileContent(configFile.config, ts.sys, projectRoot, {
+  // Use the tsconfig's own directory as base so path aliases (paths, baseUrl)
+  // resolve correctly when building a subdirectory of a monorepo root.
+  const configBaseDir = tsconfig ? path.dirname(tsconfig) : projectRoot;
+  const parsedConfig = ts.parseJsonConfigFileContent(configFile.config, ts.sys, configBaseDir, {
     noEmit: true,
     plugins: [],
   });
