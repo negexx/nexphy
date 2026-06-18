@@ -38,7 +38,7 @@ export async function run(args: string[]): Promise<void> {
   });
 
   const dbPath = findDb(values.db);
-  const outputPath = resolve(values.output);
+  const outputPath = resolve(values.output ?? "graph.html");
   const project = basename(dirname(resolve(dbPath)));
 
   const db = openDb(dbPath);
