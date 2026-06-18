@@ -57,24 +57,24 @@ jobs:
           cp -r node_modules/typescript fixtures/simple-ts/node_modules/typescript
 
       - name: E2E — build fixture
-        run: ./dist/tsgraph build ./fixtures/simple-ts
+        run: ./dist/nexphy build ./fixtures/simple-ts
 
       - name: E2E — query
         run: |
           set -euo pipefail
-          ./dist/tsgraph query greet --db ./fixtures/simple-ts/.tsgraph.db > /tmp/query-out.json
+          ./dist/nexphy query greet --db ./fixtures/simple-ts/.nexphy.db > /tmp/query-out.json
           grep -q '"name"' /tmp/query-out.json
           grep -q 'greet' /tmp/query-out.json
 
       - name: E2E — explain-edges
         run: |
           set -euo pipefail
-          ./dist/tsgraph explain-edges > /tmp/edges-out.json
+          ./dist/nexphy explain-edges > /tmp/edges-out.json
           grep -q 'edge_kinds' /tmp/edges-out.json
 
       - name: Cleanup fixture DB
         if: always()
-        run: rm -f fixtures/simple-ts/.tsgraph.db fixtures/simple-ts/.tsgraph.db-wal fixtures/simple-ts/.tsgraph.db-shm
+        run: rm -f fixtures/simple-ts/.nexphy.db fixtures/simple-ts/.nexphy.db-wal fixtures/simple-ts/.nexphy.db-shm
 
   node-bundle:
     name: Node bundle
@@ -113,4 +113,4 @@ jobs:
 
       - name: Cleanup fixture DB
         if: always()
-        run: rm -f fixtures/simple-ts/.tsgraph.db fixtures/simple-ts/.tsgraph.db-wal fixtures/simple-ts/.tsgraph.db-shm
+        run: rm -f fixtures/simple-ts/.nexphy.db fixtures/simple-ts/.nexphy.db-wal fixtures/simple-ts/.nexphy.db-shm
