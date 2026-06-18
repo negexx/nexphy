@@ -37,9 +37,9 @@ export function loadGraphData(db: SqliteDb, project: string): GraphData {
     pagerank: number | null;
     community: number | null;
   }>(
-    `SELECT n.symbol_id, n.name, n.kind, f.path, n.line_start, n.pagerank, n.community
+    `SELECT n.symbol_id, n.name, n.kind, COALESCE(f.path, '') AS path, n.line_start, n.pagerank, n.community
      FROM nodes n
-     JOIN files f ON n.file_id = f.id
+     LEFT JOIN files f ON n.file_id = f.id
      WHERE n.name NOT LIKE '<module>%'`,
   );
 
@@ -61,12 +61,15 @@ export function loadGraphData(db: SqliteDb, project: string): GraphData {
      WHERE ns.name NOT LIKE '<module>%' AND nd.name NOT LIKE '<module>%'`,
   );
 
+  const tsRow = db.get<{ max_at: number | null }>("SELECT MAX(analyzed_at) AS max_at FROM files");
+  const builtAt = tsRow?.max_at ? new Date(tsRow.max_at).toISOString() : new Date().toISOString();
+
   return {
     nodes,
     edges: rawEdges,
     meta: {
       project,
-      builtAt: new Date().toISOString(),
+      builtAt,
       nodeCount: nodes.length,
       edgeCount: rawEdges.length,
     },
