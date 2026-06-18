@@ -1,5 +1,4 @@
-import { createRequire } from "node:module";
-import { join } from "node:path";
+import * as ts from "typescript";
 import type { ResolvedEdge } from "./types.ts";
 
 function posix(p: string): string {
@@ -10,10 +9,6 @@ export async function resolveEdges(
   filePaths: string[],
   projectRoot: string,
 ): Promise<ResolvedEdge[]> {
-  const req = createRequire(join(projectRoot, "package.json"));
-  // Load TypeScript from the analyzed project so the correct version is used.
-  const ts = req("typescript") as typeof import("typescript");
-
   const tsconfig = ts.findConfigFile(projectRoot, ts.sys.fileExists, "tsconfig.json");
   const configFile = tsconfig ? ts.readConfigFile(tsconfig, ts.sys.readFile) : { config: {} };
   const parsedConfig = ts.parseJsonConfigFileContent(configFile.config, ts.sys, projectRoot, {
