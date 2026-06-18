@@ -2,16 +2,20 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { unlinkSync } from "node:fs";
 import { join } from "node:path";
 import { run as buildRun } from "../../src/cli/build.ts";
-import { loadGraphData } from "../../src/visualize/data.ts";
 import { openDb } from "../../src/storage/db.ts";
 import type { SqliteDb } from "../../src/storage/interface.ts";
+import { loadGraphData } from "../../src/visualize/data.ts";
 
 const fixtureDir = join(import.meta.dir, "../../fixtures/simple-ts");
 const dbPath = join(fixtureDir, ".nexphy.db");
 
 function cleanupDb() {
   for (const suffix of ["", "-wal", "-shm"]) {
-    try { unlinkSync(dbPath + suffix); } catch { /* ok */ }
+    try {
+      unlinkSync(dbPath + suffix);
+    } catch {
+      /* ok */
+    }
   }
 }
 
